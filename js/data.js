@@ -50,16 +50,19 @@ async function loadRemoteState() {
 
 // Simpan state ke Worker D1 (fire-and-forget dengan antrian; tanpa menunggu UI).
 function saveRemoteState(data) {
-  if (!apiAvailable) return Promise.resolve(false);
   saveQueue = saveQueue
-    .then(() => fetchJSON(API_STATE, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }))
-    .then(() => true)
-    .catch((e) => {
-      console.warn('[cloud] Gagal simpan state ke cloud:', e.message);
-      return false;
+    .then(async () => {
+      try {
+        await fetchJSON(API_STATE, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+        apiAvailable = true;
+        return true;
+      } catch (e) {
+        apiAvailable = false;
+        throw new Error('Cloud save failed: ' + e.message);
+      }
     });
   return saveQueue;
 }
