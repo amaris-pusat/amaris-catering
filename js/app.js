@@ -9,7 +9,13 @@ let kasPage = 1;
 let editingId = null;
 
 /* ================= INISIALISASI ================= */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Muat data dari cloud (D1) / localStorage dulu — semua render butuh state.
+  try {
+    await initData();
+  } catch (e) {
+    console.error('Gagal memuat data awal:', e);
+  }
   const applyAuthUI = initAuth();
   initNav();
   initButtons();

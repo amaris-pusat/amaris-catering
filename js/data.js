@@ -5,6 +5,74 @@
 
 const STORAGE_KEY = 'amaris-catering-data-v1';
 
+/* ---------- Sinkronisasi cloud (Cloudflare Worker + D1) ---------- */
+const API_BASE = (typeof window !== 'undefined' && window.AMARIS_API_BASE)
+  ? window.AMARIS_API_BASE
+  : (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin !== 'null')
+    ? window.location.origin
+    : '';
+const API_STATE = API_BASE ? API_BASE + '/api/state' : '/api/state';
+const API_TOKEN = (typeof window !== 'undefined' && window.AMARIS_API_TOKEN) || '';
+let apiAvailable = false;   // true setelah GET /api/state berhasil
+let saveQueue = Promise.resolve(); // antrian agar PUT tidak tumpang tindih
+let saveTimer = null;
+
+function getApiToken() {
+  return API_TOKEN;
+}
+
+async function fetchJSON(url, opts = {}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Token': getApiToken(),
+      ...(opts.headers || {})
+    }
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// Ambil state dari Worker D1. Mengembalikan objek state atau null jika kosong/gagal.
+async function loadRemoteState() {
+  try {
+    const r = await fetchJSON(API_STATE);
+    apiAvailable = true;
+    return r && r.data ? r.data : null;
+  } catch (e) {
+    apiAvailable = false;
+    console.warn('[cloud] Gagal ambil state dari cloud:', e.message);
+    return null;
+  }
+}
+
+// Simpan state ke Worker D1 (fire-and-forget dengan antrian; tanpa menunggu UI).
+function saveRemoteState(data) {
+  if (!apiAvailable) return Promise.resolve(false);
+  saveQueue = saveQueue
+    .then(() => fetchJSON(API_STATE, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    }))
+    .then(() => true)
+    .catch((e) => {
+      console.warn('[cloud] Gagal simpan state ke cloud:', e.message);
+      return false;
+    });
+  return saveQueue;
+}
+
+// Debounce simpan: panggilan bertubi-tubi (mis. ketik isian form) digabung menjadi satu PUT.
+function scheduleCloudSave() {
+  if (!apiAvailable) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    saveRemoteState(JSON.parse(JSON.stringify(state)));
+  }, 500);
+}
+
 /* ---------- Kategori bawaan (tidak bisa dihapus) ---------- */
 const DEFAULT_CATEGORIES = {
   masuk: [
@@ -102,7 +170,9 @@ const DEFAULT_STATE = () => ({
   profitWithdrawals: [] // {id, tanggal, jumlah, keterangan, status: 'pending'|'approved'|'rejected'}
 });
 
-let state = loadState();
+// state diisi default sinkron agar seluruh fungsi aman dipanggil kapan pun;
+// initData() (async, dipanggil saat boot) akan menggantinya dari cloud/localStorage.
+let state = DEFAULT_STATE();
 
 /* ---------- Utilitas ---------- */
 function uid() {
@@ -115,29 +185,42 @@ function todayISOLocal() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function loadState() {
+async function loadState() {
+  // 1) Coba ambil dari cloud (D1). Jika ada, pakai & simpan salinan lokal.
+  try {
+    const remote = await loadRemoteState();
+    if (remote) {
+      const s = normalizeState(remote);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* abaikan */ }
+      return s;
+    }
+  } catch (e) { /* lanjut ke localStorage */ }
+  // 2) Fallback: localStorage (mode offline / tanpa worker).
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULT_STATE();
-    const parsed = JSON.parse(raw);
-    const def = DEFAULT_STATE();
-    return {
-      settings: { ...def.settings, ...(parsed.settings || {}) },
-      categories: mergeCategories(def, parsed.categories),
-      uptds: mergeUptds(parsed),
-      // Migrasi data lama: transaksi keluar yang dulu menyimpan harga_manual
-      // (dan belum punya qty) diubah menjadi qty=1, jumlah=harga_manual.
-      transactions: Array.isArray(parsed.transactions)
-        ? parsed.transactions.map(migrateTxn)
-        : [],
-      profitWithdrawals: Array.isArray(parsed.profitWithdrawals)
-        ? parsed.profitWithdrawals.map(migrateWd)
-        : []
-    };
-  } catch (e) {
-    console.error('Gagal memuat data:', e);
-    return DEFAULT_STATE();
-  }
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return normalizeState(parsed);
+    }
+  } catch (e) { /* lanjut ke default */ }
+  return DEFAULT_STATE();
+}
+
+function normalizeState(parsed) {
+  const def = DEFAULT_STATE();
+  return {
+    settings: { ...def.settings, ...(parsed && parsed.settings ? parsed.settings : {}) },
+    categories: mergeCategories(def, parsed && parsed.categories),
+    uptds: mergeUptds(parsed),
+    // Migrasi data lama: transaksi keluar yang dulu menyimpan harga_manual
+    // (dan belum punya qty) diubah menjadi qty=1, jumlah=harga_manual.
+    transactions: Array.isArray(parsed && parsed.transactions)
+      ? parsed.transactions.map(migrateTxn)
+      : [],
+    profitWithdrawals: Array.isArray(parsed && parsed.profitWithdrawals)
+      ? parsed.profitWithdrawals.map(migrateWd)
+      : []
+  };
 }
 
 function migrateTxn(t) {
@@ -181,16 +264,23 @@ function mergeCategories(def, parsed) {
   return out;
 }
 
-function saveState() {
+async function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
-    console.error('Gagal menyimpan data:', e);
+    console.error('Gagal menyimpan data lokal:', e);
   }
+  scheduleCloudSave();
 }
 
-/* ---------- Akses state ---------- */
+/* ---------- Inisialisasi data (dipanggil saat boot aplikasi) ---------- */
+async function initData() {
+  state = await loadState();
+  return state;
+}
+
 function getState() { return state; }
+function setStateForTest(s) { state = s; }
 
 function getCategoryLabel(tipe, id) {
   const cats = state.categories[tipe] || [];

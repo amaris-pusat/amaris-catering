@@ -1,10 +1,21 @@
 # ============================================================
-# Cloudflare Pages — Amaris Catering (static site)
-# Deploy: npx wrangler pages deploy . --project-name=amaris-catering
+# Cloudflare Pages — Amaris Catering (static site + Pages Function API)
+# Deploy: npx wrangler pages deploy dist --project-name=amaris-catering
 # URL:   https://amaris-catering.pages.dev
 # ============================================================
 name = "amaris-catering"
 compatibility_date = "2026-08-18"
 
-# Output build: aplikasi ini statis tanpa build step, direktori deploy = root
-pages_build_output_dir = "."
+# --- D1 database (SQLite gratis; semua device baca/tulis) ---
+[[d1_databases]]
+binding = "amaris_catering_db"
+database_name = "amaris-catering-db"
+database_id = "8d512975-fcd5-402c-9a8c-1d5dc8923656"
+
+# --- Token API (pengaman endpoint PUT /api/state) ---
+# Frontend (index.html) memakai nilai yang sama untuk mengirim data.
+[vars]
+API_TOKEN = "amarisXju7Dz5EynTKAg3FlaCYMcGhRP4tJZvo"
+
+# Output build: direktori produksi yang di-deploy ke Pages
+pages_build_output_dir = "dist"

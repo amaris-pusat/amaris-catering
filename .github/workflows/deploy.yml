@@ -36,10 +36,11 @@ jobs:
       - name: Build produksi
         run: |
           rm -rf dist
-          mkdir -p dist/css dist/js
+          mkdir -p dist/css dist/js dist/functions/api
           cp index.html dist/index.html
           cp css/style.css dist/css/style.css
           cp js/app.js js/auth.js js/charts.js js/data.js js/ui.js dist/js/
+          cp functions/api/state.js dist/functions/api/state.js
 
       # 5) Deploy ke Cloudflare Pages (butuh secret CLOUDFLARE_API_TOKEN)
       - name: Deploy ke Cloudflare Pages
@@ -52,3 +53,10 @@ jobs:
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           branch: main
           wranglerVersion: '4'
+
+      # 6) Deploy Worker API + binding D1 (data bersama semua device)
+      - name: Deploy Worker API D1
+        run: npx wrangler deploy --config wrangler.worker.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

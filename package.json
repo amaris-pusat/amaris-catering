@@ -4,7 +4,7 @@
   "description": "",
   "main": "test-auth.js",
   "scripts": {
-    "deploy:build": "powershell -NoProfile -Command \"$d='dist'; if(Test-Path $d){Remove-Item $d -Recurse -Force}; New-Item -ItemType Directory -Force -Path $d\\css,$d\\js | Out-Null; Copy-Item index.html $d\\index.html -Force; Copy-Item css\\style.css $d\\css\\style.css -Force; Copy-Item js\\app.js,js\\auth.js,js\\charts.js,js\\data.js,js\\ui.js $d\\js\\ -Force\"",
+    "deploy:build": "powershell -NoProfile -Command \"$d='dist'; if(Test-Path $d){Remove-Item $d -Recurse -Force}; New-Item -ItemType Directory -Force -Path $d\\css,$d\\js,$d\\functions\\api | Out-Null; Copy-Item index.html $d\\index.html -Force; Copy-Item css\\style.css $d\\css\\style.css -Force; Copy-Item js\\app.js,js\\auth.js,js\\charts.js,js\\data.js,js\\ui.js $d\\js\\ -Force; Copy-Item functions\\api\\state.js $d\\functions\\api\\state.js -Force\"",
     "deploy": "npm run deploy:build && npx wrangler pages deploy dist --project-name=amaris-catering --branch=main"
   },
   "keywords": [],

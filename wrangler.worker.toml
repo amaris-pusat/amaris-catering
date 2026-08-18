@@ -1,0 +1,9 @@
+﻿name = "amaris-catering-api"
+main = "worker/index.js"
+compatibility_date = "2026-08-18"
+[[d1_databases]]
+binding = "amaris_catering_db"
+database_name = "amaris-catering-db"
+database_id = "8d512975-fcd5-402c-9a8c-1d5dc8923656"
+[vars]
+API_TOKEN = "amarisXju7Dz5EynTKAg3FlaCYMcGhRP4tJZvo"

@@ -23,6 +23,12 @@ global.localStorage = (() => {
 // properti global object sehingga dapat dipanggil dari file test ini.
 const vm = require('vm');
 const dataSrc = fs.readFileSync(path.join(__dirname, 'js', 'data.js'), 'utf8');
+
+// Mock fetch: API cloud tidak tersedia di test → fallback ke localStorage.
+global.fetch = async () => {
+  throw new Error('API tidak tersedia di test (fallback localStorage)');
+};
+
 vm.runInThisContext(dataSrc, { filename: 'data.js' });
 
 let passed = 0, failed = 0;
