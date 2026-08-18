@@ -1,0 +1,10 @@
+# ============================================================
+# Cloudflare Pages — Amaris Catering (static site)
+# Deploy: npx wrangler pages deploy . --project-name=amaris-catering
+# URL:   https://amaris-catering.pages.dev
+# ============================================================
+name = "amaris-catering"
+compatibility_date = "2026-08-18"
+
+# Output build: aplikasi ini statis tanpa build step, direktori deploy = root
+pages_build_output_dir = "."

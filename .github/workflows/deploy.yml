@@ -1,0 +1,54 @@
+# ============================================================
+# GitHub Actions — Deploy otomatis Amaris Catering ke Cloudflare Pages
+# Trigger: setiap push ke branch main (atau workflow_dispatch manual)
+# URL:    https://amaris-catering.pages.dev
+# ============================================================
+name: Deploy ke Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # izinkan trigger manual dari tab Actions
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      # 1) Ambil kode terbaru dari repository
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) Siapkan Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 3) Jalankan test (data.js) — gagal = tidak deploy
+      - name: Test
+        run: node test-data.js
+
+      # 4) Siapkan folder produksi bersih (dist/) tanpa file test/node_modules
+      - name: Build produksi
+        run: |
+          rm -rf dist
+          mkdir -p dist/css dist/js
+          cp index.html dist/index.html
+          cp css/style.css dist/css/style.css
+          cp js/app.js js/auth.js js/charts.js js/data.js js/ui.js dist/js/
+
+      # 5) Deploy ke Cloudflare Pages (butuh secret CLOUDFLARE_API_TOKEN)
+      - name: Deploy ke Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: amaris-catering
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          wranglerVersion: '4'

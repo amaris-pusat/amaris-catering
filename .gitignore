@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Folder produksi (dibuat ulang oleh CI / deploy script)
+dist/
+
+# Wrangler cache & credentials lokal
+.wrangler/
+
+# Log & file sistem
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amaris Catering — Buku Kas &amp; Keuangan Usaha</title>
+  <meta name="description"
+    content="Aplikasi pencatatan keuangan usaha katering Amaris: buku kas, pemasukan, pengeluaran, saldo otomatis, laporan bulanan, grafik, dan backup data.">
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%8D%B1%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <!-- ======= LAYAR LOGIN ======= -->
+  <div class="login-screen" id="login-screen" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="login-bg-glow login-glow-1" aria-hidden="true"></div>
+    <div class="login-bg-glow login-glow-2" aria-hidden="true"></div>
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 12h24v10a12 12 0 0 1-24 0V12Z" fill="url(#lg1)" stroke="#fff" stroke-opacity=".35"
+              stroke-width="1.4" />
+            <path d="M10 8h20" stroke="#fff" stroke-opacity=".6" stroke-width="2.4" stroke-linecap="round" />
+            <path d="M14 26c2 2.4 4 3.4 6 3.4s4-1 6-3.4" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"
+              stroke-linecap="round" />
+            <defs>
+              <linearGradient id="lg1" x1="8" y1="12" x2="32" y2="32">
+                <stop stop-color="#FFB34D" />
+                <stop offset="1" stop-color="#FF7A45" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="login-title" id="login-title">Amaris Catering</div>
+        <div class="login-sub">Manajemen Keuangan Usaha</div>
+      </div>
+
+      <form class="login-form" id="login-form" novalidate>
+        <label class="login-field">
+          <span class="login-label">Username</span>
+          <span class="login-input-wrap">
+            <svg class="login-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input type="text" id="login-username" class="login-input" placeholder="Masukkan username"
+              autocomplete="username" autocapitalize="none" spellcheck="false" autofocus>
+          </span>
+        </label>
+        <label class="login-field">
+          <span class="login-label">Password</span>
+          <span class="login-input-wrap">
+            <svg class="login-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <input type="password" id="login-password" class="login-input" placeholder="Masukkan password"
+              autocomplete="current-password">
+          </span>
+        </label>
+        <div class="login-error" id="login-error" role="alert" hidden></div>
+        <button type="submit" class="login-btn" id="login-submit">Masuk</button>
+      </form>
+
+      <div class="login-foot">
+        <span>🔒 Data tersimpan aman di perangkat ini</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="app">
+
+    <!-- ======= SIDEBAR ======= -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 12h24v10a12 12 0 0 1-24 0V12Z" fill="url(#lg1)" stroke="#fff" stroke-opacity=".35"
+              stroke-width="1.4" />
+            <path d="M10 8h20" stroke="#fff" stroke-opacity=".6" stroke-width="2.4" stroke-linecap="round" />
+            <path d="M14 26c2 2.4 4 3.4 6 3.4s4-1 6-3.4" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"
+              stroke-linecap="round" />
+            <defs>
+              <linearGradient id="lg1" x1="8" y1="12" x2="32" y2="32">
+                <stop stop-color="#FFB34D" />
+                <stop offset="1" stop-color="#FF7A45" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-name" id="brand-name">Amaris Catering</div>
+          <div class="brand-sub">Manajemen Keuangan</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Navigasi utama">
+        <button class="nav-item" data-page="dashboard" id="nav-dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <rect x="3" y="3" width="7.5" height="7.5" rx="2" />
+            <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" />
+            <rect x="3" y="13.5" width="7.5" height="7.5" rx="2" />
+            <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" />
+          </svg>
+          <span>Ringkasan</span>
+        </button>
+        <button class="nav-item" data-page="kas" id="nav-kas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z" />
+            <path d="M9 7h6M9 11h6" />
+          </svg>
+          <span>Transaksi</span>
+        </button>
+        <button class="nav-item" data-page="laporan" id="nav-laporan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M3 3v18h18" />
+            <path d="M7 15v-4M12 15V7M17 15v-7" />
+          </svg>
+          <span>Laporan</span>
+        </button>
+        <button class="nav-item" data-page="pengaturan" id="nav-pengaturan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+          </svg>
+          <span>Pengaturan</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="sidebar-user" id="sidebar-user" hidden></div>
+        <button class="saldo-mini" id="btn-go-kas" title="Lihat Transaksi">
+          <div class="saldo-mini-label">Saldo Saat Ini</div>
+          <div class="saldo-mini-value" id="side-saldo-value">Rp 0</div>
+          <div class="saldo-mini-hint">klik untuk buka menu Transaksi</div>
+        </button>
+        <button class="btn-ghost btn-help" id="btn-help">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </svg>
+          <span>Panduan &amp; SOP</span>
+        </button>
+        <button class="btn-ghost btn-help btn-logout" id="btn-logout" title="Keluar dari akun">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="M16 17l5-5-5-5" />
+            <path d="M21 12H9" />
+          </svg>
+          <span>Keluar</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ======= MAIN ======= -->
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="page-title">Ringkasan</h1>
+          <div class="top-date" id="top-date"></div>
+        </div>
+      </header>
+
+      <!-- ===== HALAMAN: RINGKASAN ===== -->
+      <section class="page active" id="page-dashboard">
+        <div class="welcome" id="dash-welcome">
+          <div class="welcome-text">
+            <h2 id="dash-greet">Halo 👋</h2>
+            <p id="dash-sub">Selamat bekerja! Catat setiap transaksi agar perhitungan usaha tetap akurat.</p>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="card stat" data-stat="saldo">
+            <div class="stat-icon ic-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+              </svg></div>
+            <div class="stat-body">
+              <div class="stat-label">Saldo Saat Ini</div>
+              <div class="stat-value" id="dash-saldo">Rp 0</div>
+              <div class="stat-sub">saldo awal + pemasukan − pengeluaran</div>
+            </div>
+          </div>
+          <div class="card stat" data-stat="masuk">
+            <div class="stat-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 19V5" />
+                <path d="M5 12l7-7 7 7" />
+              </svg></div>
+            <div class="stat-body">
+              <div class="stat-label">Pemasukan Bulan Ini</div>
+              <div class="stat-value" id="dash-masuk">Rp 0</div>
+              <div class="stat-sub" id="dash-sub-masuk">0 transaksi</div>
+            </div>
+          </div>
+          <div class="card stat" data-stat="keluar">
+            <div class="stat-icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14" />
+                <path d="M19 12l-7 7-7-7" />
+              </svg></div>
+            <div class="stat-body">
+              <div class="stat-label">Pengeluaran Bulan Ini</div>
+              <div class="stat-value" id="dash-keluar">Rp 0</div>
+              <div class="stat-sub" id="dash-sub-keluar">0 transaksi</div>
+            </div>
+          </div>
+          <div class="card stat" data-stat="laba">
+            <div class="stat-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v18" />
+                <path d="M5 7l7-4 7 4-7 4-7-4Z" opacity=".45" />
+                <path d="M5 11l7 4 7-4" opacity=".45" />
+                <path d="M5 15l7 4 7-4" opacity=".45" />
+              </svg></div>
+            <div class="stat-body">
+              <div class="stat-label">Selisih Kas Bulan Ini</div>
+              <div class="stat-value" id="dash-laba">Rp 0</div>
+              <div class="stat-sub">pemasukan − pengeluaran</div>
+            </div>
+          </div>
+          <div class="card stat" data-stat="keuntungan">
+            <div class="stat-icon ic-profit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg></div>
+            <div class="stat-body">
+              <div class="stat-label">Keuntungan Bulan Ini</div>
+              <div class="stat-value" id="dash-profit">Rp 0</div>
+              <div class="stat-sub">qty × keuntungan/porsi + fee</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card chart-card">
+            <div class="card-head">
+              <h3>Pemasukan vs Pengeluaran</h3>
+              <span class="muted" id="dash-chart-range">12 bulan terakhir</span>
+            </div>
+            <div class="chart-legend">
+              <span class="lg-dot lg-masuk"></span> Pemasukan
+              <span class="lg-dot lg-keluar"></span> Pengeluaran
+            </div>
+            <div id="dash-bars" class="chart-box"></div>
+          </div>
+
+          <div class="card chart-card">
+            <div class="card-head">
+              <h3>Pengeluaran per Kategori</h3>
+              <span class="muted" id="dash-donut-title">Bulan ini</span>
+            </div>
+            <div class="donut-wrap">
+              <div id="dash-donut" class="chart-box donut-box"></div>
+              <div id="dash-legend" class="donut-legend"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Transaksi Terbaru</h3>
+            <button class="link-btn no-print" id="btn-dash-lihat-kas">Lihat semua →</button>
+          </div>
+          <div id="dash-recent"></div>
+        </div>
+      </section>
+
+      <!-- ===== HALAMAN: TRANSAKSI ===== -->
+      <section class="page" id="page-kas">
+        <!-- Kartu Keuntungan per UPTD -->
+        <div class="profit-toolbar no-print">
+          <label class="field-label" for="profit-month">Keuntungan per UPTD — Periode</label>
+          <input type="month" id="profit-month" class="input">
+        </div>
+        <div class="profit-grid" id="profit-grid"><!-- diisi dinamis oleh renderKeuntungan() --></div>
+
+        <div class="card kas-toolbar no-print">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input type="text" id="kas-search" placeholder="    Search" autocomplete="off">
+          </div>
+          <select id="kas-filter-tipe" class="input">
+            <option value="">Semua tipe</option>
+            <option value="masuk">Debit · Pemasukan</option>
+            <option value="keluar">Kredit · Pengeluaran</option>
+          </select>
+          <select id="kas-filter-uptd" class="input">
+            <option value="">Semua UPTD</option>
+          </select>
+          <select id="kas-filter-kategori" class="input">
+            <option value="">Semua kategori</option>
+          </select>
+          <input type="date" id="kas-filter-dari" class="input" title="Dari tanggal">
+          <input type="date" id="kas-filter-sampai" class="input" title="Sampai tanggal">
+          <button class="btn btn-ghost" id="btn-kas-reset">Reset</button>
+        </div>
+
+        <div class="card table-card">
+          <div class="card-head kas-head">
+            <h3>Daftar Transaksi</h3>
+            <div class="kas-actions">
+              <button class="btn btn-primary btn-sm no-print" id="btn-add-transaksi-2">+ Tambah Transaksi</button>
+              <span class="muted" id="kas-count">0 transaksi</span>
+              <button class="btn btn-ghost btn-sm no-print" id="btn-kas-csv">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <path d="M7 10l5 5 5-5" />
+                  <path d="M12 15V3" />
+                </svg>
+                Ekspor CSV
+              </button>
+              <button class="btn btn-ghost btn-sm no-print" id="btn-kas-print">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M6 9V2h12v7" />
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Cetak
+              </button>
+            </div>
+          </div>
+
+          <div class="print-only print-header"><strong id="print-name">Amaris Catering</strong> — Transaksi</div>
+
+          <div class="table-scroll">
+            <div class="koran-head" id="koran-head">
+              <span>No</span>
+              <span>Tanggal</span>
+              <span>Keterangan</span>
+              <span class="num">Debit (Pemasukan)</span>
+              <span class="num">Kredit (Pengeluaran)</span>
+              <span class="num koran-col-profit">Keuntungan</span>
+              <span class="num">Saldo</span>
+              <span class="num koran-col-aksi no-print">Aksi</span>
+            </div>
+            <table class="kas-table">
+              <tbody id="kas-table-body"></tbody>
+            </table>
+            <div id="kas-empty" class="empty-state" hidden>
+              <div class="empty-emoji">🧾</div>
+              <h4 id="kas-empty-title">Belum ada transaksi</h4>
+              <p id="kas-empty-desc">Catat pemasukan atau pengeluaran pertama Anda untuk mulai menghitung saldo.</p>
+              <div class="empty-actions">
+                <button class="btn btn-primary" data-open-txn="transaksi">+ Tambah Transaksi</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="kas-footer">
+            <div class="kas-totals">
+              <span>Total tampil: <b class="pos">Masuk Rp <span id="kas-total-masuk">0</span></b> · <b
+                  class="neg">Keluar Rp <span id="kas-total-keluar">0</span></b></span>
+              <span class="muted" id="kas-note">Debit = pemasukan · Kredit = pengeluaran · Kolom Saldo = posisi kas
+                sebenarnya. Kategori <b>Fee</b> mengurangi saldo tapi tetap menambah keuntungan.</span>
+            </div>
+            <div class="pagination no-print">
+              <button class="btn btn-ghost btn-sm" id="kas-prev">← Sebelumnya</button>
+              <span class="pg-info" id="kas-page-info">Hal 1 dari 1</span>
+              <button class="btn btn-ghost btn-sm" id="kas-next">Berikutnya →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== HALAMAN: LAPORAN ===== -->
+      <section class="page" id="page-laporan">
+        <div class="card laporan-toolbar no-print">
+          <label class="field-label" for="laporan-month">Periode laporan</label>
+          <input type="month" id="laporan-month" class="input">
+          <span class="muted" id="lap-count"></span>
+          <div class="spacer"></div>
+          <button class="btn btn-ghost btn-sm" id="btn-laporan-csv">Ekspor CSV</button>
+          <button class="btn btn-ghost btn-sm" id="btn-laporan-print">Cetak Laporan</button>
+        </div>
+
+        <div class="print-only print-header"><strong id="print-name-lap">Amaris Catering</strong> — Laporan Bulanan
+          <span id="print-month-lap"></span>
+        </div>
+
+        <div class="stats-grid lap-stats">
+          <div class="card stat">
+            <div class="stat-body">
+              <div class="stat-label">Saldo Awal Bulan</div>
+              <div class="stat-value" id="lap-saldo-awal">Rp 0</div>
+            </div>
+          </div>
+          <div class="card stat">
+            <div class="stat-body">
+              <div class="stat-label">Total Pemasukan</div>
+              <div class="stat-value pos" id="lap-masuk">Rp 0</div>
+            </div>
+          </div>
+          <div class="card stat">
+            <div class="stat-body">
+              <div class="stat-label">Total Pengeluaran</div>
+              <div class="stat-value neg" id="lap-keluar">Rp 0</div>
+            </div>
+          </div>
+          <div class="card stat">
+            <div class="stat-body">
+              <div class="stat-label">Saldo Akhir Bulan</div>
+              <div class="stat-value" id="lap-saldo-akhir">Rp 0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Selisih Kas Bulan Ini <span class="info-badge"
+                title="Selisih kas = pemasukan − pengeluaran. Ini indikator arus kas, bukan laba akuntansi penuh (belum termasuk stok &amp; penyusutan).">i</span>
+            </h3>
+          </div>
+          <div class="selisih-box">
+            <div class="selisih-value" id="lap-selisih">Rp 0</div>
+            <div class="muted">pemasukan − pengeluaran periode ini</div>
+            <div class="selisih-profit" id="lap-profit-info">Keuntungan bulan ini: <b id="lap-profit">Rp 0</b></div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card chart-card">
+            <div class="card-head">
+              <h3>Grafik Tahunan</h3><span class="muted" id="lap-chart-title">Tahun yang dipilih</span>
+            </div>
+            <div class="chart-legend">
+              <span class="lg-dot lg-masuk"></span> Pemasukan
+              <span class="lg-dot lg-keluar"></span> Pengeluaran
+            </div>
+            <div id="lap-chart" class="chart-box"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Rekap per Bulan</h3>
+            </div>
+            <div class="table-scroll">
+              <table class="mini-table">
+                <thead>
+                  <tr>
+                    <th>Bulan</th>
+                    <th class="num">Pemasukan</th>
+                    <th class="num">Pengeluaran</th>
+                    <th class="num">Saldo Akhir</th>
+                  </tr>
+                </thead>
+                <tbody id="lap-table-months"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <h3>Rincian Pemasukan per Kategori</h3>
+            </div>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Kategori</th>
+                  <th>Jumlah</th>
+                  <th class="num">Total</th>
+                </tr>
+              </thead>
+              <tbody id="lap-table-masuk"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3>Rincian Pengeluaran per Kategori</h3>
+            </div>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Kategori</th>
+                  <th>Jumlah</th>
+                  <th class="num">Total</th>
+                </tr>
+              </thead>
+              <tbody id="lap-table-keluar"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== HALAMAN: PENGATURAN ===== -->
+      <section class="page" id="page-pengaturan">
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <h3>Profil Usaha</h3>
+            </div>
+            <div class="form-grid">
+              <label class="field">
+                <span class="field-label">Nama Usaha</span>
+                <input type="text" id="set-nama" class="input" maxlength="60">
+              </label>
+              <label class="field">
+                <span class="field-label">Saldo Awal (uang kas saat mulai memakai aplikasi)</span>
+                <input type="text" id="set-saldo-awal" class="input uang-input" inputmode="numeric" placeholder="0">
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" id="btn-set-save">Simpan Pengaturan</button>
+            </div>
+            <div class="hint-box">💡 <b>Saldo awal</b> diisi dengan jumlah uang tunai + rekening usaha yang sudah ada
+              sebelum mulai memakai aplikasi. Semua saldo dihitung otomatis dari angka ini.</div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Statistik Data</h3>
+            </div>
+            <div class="kat-list">
+              <div class="stat-line"><span>Total transaksi</span><b id="stat-trx">0</b></div>
+              <div class="stat-line"><span>Bulan dengan data</span><b id="stat-bulan">0</b></div>
+              <div class="stat-line"><span>Ukuran data tersimpan</span><b id="stat-ukuran">0 KB</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Kelola Kategori</h3><span class="muted">Kategori bawaan tidak bisa dihapus. Tambahkan kategori sesuai
+              kebutuhan usaha Anda.</span>
+          </div>
+          <div class="kat-cols">
+            <div class="kat-col">
+              <h4 class="kat-col-title pos">Pemasukan</h4>
+              <ul class="kat-list" id="kat-masuk-list"></ul>
+              <div class="kat-add">
+                <input type="text" id="kat-masuk-add" class="input" placeholder="Kategori baru…" maxlength="40">
+                <button class="btn btn-ghost btn-sm" id="btn-kat-masuk-add">Tambah</button>
+              </div>
+            </div>
+            <div class="kat-col">
+              <h4 class="kat-col-title neg">Pengeluaran</h4>
+              <ul class="kat-list" id="kat-keluar-list"></ul>
+              <div class="kat-add">
+                <input type="text" id="kat-keluar-add" class="input" placeholder="Kategori baru…" maxlength="40">
+                <button class="btn btn-ghost btn-sm" id="btn-kat-keluar-add">Tambah</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <h3>Backup &amp; Pemulihan Data</h3>
+            </div>
+            <p class="muted">Lakukan backup secara berkala (misalnya tiap minggu) agar data aman. Semua data tersimpan
+              di browser perangkat ini.</p>
+            <div class="form-actions wrap">
+              <button class="btn btn-primary" id="btn-backup-export">⬇️ Ekspor Backup (.json)</button>
+              <button class="btn btn-ghost" id="btn-backup-import">⬆️ Pulihkan dari Backup</button>
+              <input type="file" id="backup-file" accept=".json,application/json" hidden>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kartu kelola akun & UPTD (khusus superadmin; disembunyikan untuk role UPTD) -->
+        <div class="card" id="kelola-akun-card">
+          <div class="card-head">
+            <h3>Kelola Akun &amp; UPTD</h3>
+            <span class="muted">Superadmin dapat menambah UPTD baru dan membuat akun login untuk setiap UPTD.
+              Akun UPTD hanya bisa melihat transaksi milik UPTD-nya (tanpa input/edit).</span>
+          </div>
+
+          <div class="kelola-cols">
+            <div class="kelola-col">
+              <div class="kelola-col-head">
+                <h4 class="kat-col-title">Daftar UPTD</h4>
+                <button class="btn btn-primary btn-sm" id="btn-add-uptd">+ Tambah UPTD</button>
+              </div>
+              <ul class="kat-list" id="uptd-manage-list"></ul>
+            </div>
+            <div class="kelola-col">
+              <div class="kelola-col-head">
+                <h4 class="kat-col-title">Daftar Akun UPTD</h4>
+                <button class="btn btn-primary btn-sm" id="btn-add-akun">+ Tambah Akun</button>
+              </div>
+              <ul class="kat-list" id="akun-manage-list"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ======= MODAL: TRANSAKSI ======= -->
+  <div class="modal" id="modal-txn" role="dialog" aria-modal="true" aria-labelledby="txn-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="txn-title">Tambah Transaksi</h2>
+        <button class="modal-x no-print" data-close aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <form id="txn-form" novalidate>
+        <div class="field tipe-field">
+          <span class="field-label">Jenis Transaksi</span>
+          <div class="seg">
+            <label class="seg-btn">
+              <input type="radio" name="txn-tipe" id="txn-masuk" value="masuk" checked>
+              <span class="seg-label"><b class="pos">Debit</b> · Pemasukan<br><small>uang masuk</small></span>
+            </label>
+            <label class="seg-btn">
+              <input type="radio" name="txn-tipe" id="txn-keluar" value="keluar">
+              <span class="seg-label"><b class="neg">Kredit</b> · Pengeluaran<br><small>uang keluar</small></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="txn-form-fields">
+          <!-- Bagian Pemasukan (Debit) -->
+          <div id="txn-masuk-fields" class="txn-fields">
+            <label class="field">
+              <span class="field-label">UPTD</span>
+              <select id="txn-masuk-uptd" class="input"></select>
+            </label>
+            <label class="field">
+              <span class="field-label">Tanggal</span>
+              <input type="date" id="txn-tanggal" class="input" required>
+            </label>
+            <label class="field">
+              <span class="field-label">Keterangan</span>
+              <input type="text" id="txn-keterangan" class="input" maxlength="120" required>
+            </label>
+            <label class="field">
+              <span class="field-label">Kategori</span>
+              <select id="txn-kategori" class="input" required></select>
+            </label>
+            <label class="field">
+              <span class="field-label">Metode Pembayaran</span>
+              <select id="txn-metode" class="input" required></select>
+            </label>
+            <label class="field">
+              <span class="field-label">Total (Rp)</span>
+              <input type="text" id="txn-jumlah" class="input uang-input" inputmode="numeric" placeholder="0" required>
+            </label>
+            <div class="field span-2 harga-info">
+              <span class="harga-hint" id="txn-masuk-fee-hint" hidden>⚠️ Kategori <b>Fee</b>: nominal ini akan
+                <b>mengurangi saldo</b> kas, tetapi <b>seluruhnya dihitung sebagai keuntungan</b>.</span>
+            </div>
+          </div>
+
+          <!-- Bagian Pengeluaran (Kredit) -->
+          <div id="txn-keluar-fields" class="txn-fields" hidden>
+            <label class="field" id="txn-uptd-field">
+              <span class="field-label">UPTD</span>
+              <select id="txn-uptd" class="input" required>
+                <option value="">— Pilih UPTD —</option>
+                <option value="debong">UPTD Puskesmas Debong Lor</option>
+                <option value="barat">UPTD Puskesmas Tegal Barat</option>
+              </select>
+            </label>
+            <label class="field">
+              <span class="field-label">Tanggal</span>
+              <input type="date" id="txn-keluar-tanggal" class="input" required>
+            </label>
+            <label class="field">
+              <span class="field-label">Keterangan</span>
+              <input type="text" id="txn-keluar-keterangan" class="input" maxlength="120" required>
+            </label>
+            <label class="field">
+              <span class="field-label">Kategori</span>
+              <select id="txn-keluar-kategori" class="input" required>
+                <option value="keluar-snack">Snack</option>
+                <option value="keluar-nasi">Nasi Box</option>
+                <option value="keluar-gabungan">Snack + Nasi Box</option>
+                <option value="keluar-prasmanan">Prasmanan</option>
+                <option value="keluar-penarikan">Penarikan</option>
+              </select>
+            </label>
+            <label class="field" id="txn-qty-field">
+              <span class="field-label" id="txn-qty-label">Jumlah Qty</span>
+              <input type="number" id="txn-qty" class="input" min="1" inputmode="numeric" placeholder="0">
+            </label>
+            <label class="field" id="txn-qty-nasi-field" hidden>
+              <span class="field-label">Jumlah Qty Nasi Box</span>
+              <input type="number" id="txn-qty-nasi" class="input" min="1" inputmode="numeric" placeholder="0">
+            </label>
+            <label class="field" id="txn-keluar-jumlah-field" hidden>
+              <span class="field-label">Jumlah (Rp)</span>
+              <input type="text" id="txn-keluar-jumlah-manual" class="input uang-input" inputmode="numeric" placeholder="0">
+            </label>
+            <label class="field">
+              <span class="field-label">Pembayaran</span>
+              <select id="txn-keluar-metode" class="input" required></select>
+            </label>
+            <label class="field" id="txn-keluar-total-field">
+              <span class="field-label">Total (otomatis)</span>
+              <input type="text" id="txn-keluar-jumlah" class="input" readonly placeholder="Rp 0">
+            </label>
+            <div class="field span-2 harga-info">
+              <span class="harga-hint" id="txn-harga-info">Pilih UPTD dan Kategori untuk melihat harga &amp; keuntungan
+                otomatis.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-txn-save">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======= MODAL: CAIRKAN KEUNTUNGAN ======= -->
+  <div class="modal" id="modal-profit-cair" role="dialog" aria-modal="true" aria-labelledby="profit-cair-title">
+    <div class="modal-box modal-small">
+      <div class="modal-head">
+        <h2 id="profit-cair-title">Cairkan Keuntungan</h2>
+        <button class="modal-x no-print" data-close aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="txn-fields">
+        <label class="field">
+          <span class="field-label">Tanggal</span>
+          <input type="date" id="profit-cair-tanggal" class="input" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Jumlah (Rp)</span>
+          <input type="text" id="profit-cair-jumlah" class="input uang-input" inputmode="numeric" placeholder="0" required>
+        </label>
+        <label class="field span-2">
+          <span class="field-label">Keterangan <em>(opsional)</em></span>
+          <input type="text" id="profit-cair-keterangan" class="input" maxlength="120" placeholder="Misal: gaji pemilik / bagi hasil">
+        </label>
+      </div>
+      <div class="profit-cair-info">
+        <div class="profit-cair-row">
+          <span>Keuntungan kotor tersedia</span>
+          <b id="profit-cair-total">Rp 0</b>
+        </div>
+        <div class="profit-cair-row">
+          <span>Sisa setelah pencairan</span>
+          <b id="profit-cair-sisa">Rp 0</b>
+        </div>
+      </div>
+      <div class="hint-box">💡 Keuntungan yang dicairkan <b>tidak mengurangi saldo kas</b> operasional — hanya
+        mengurangi jumlah keuntungan yang tersedia untuk dicairkan.</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close>Batal</button>
+        <button class="btn btn-primary" id="btn-profit-cair-save">Cairkan Sekarang</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= MODAL: RIWAYAT PENCAIRAN KEUNTUNGAN ======= -->
+  <div class="modal" id="modal-profit-riwayat" role="dialog" aria-modal="true" aria-labelledby="profit-riwayat-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="profit-riwayat-title">Riwayat Pencairan Keuntungan</h2>
+        <button class="modal-x no-print" data-close aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="profit-riwayat-sum">Total dicairkan: <b id="profit-cair-total-dicairkan">Rp 0</b></div>
+      <div class="profit-riwayat-list" id="profit-riwayat-list"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close>Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= MODAL: TAMBAH/UBAH UPTD ======= -->
+  <div class="modal" id="modal-uptd" role="dialog" aria-modal="true" aria-labelledby="uptd-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="uptd-title">Tambah UPTD</h2>
+        <button class="modal-x no-print" data-close aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <form id="uptd-form" novalidate>
+        <div class="txn-form-fields">
+          <label class="field">
+            <span class="field-label">Nama UPTD <em>*</em></span>
+            <input type="text" id="uptd-label" class="input" maxlength="80" placeholder="Contoh: UPTD Puskesmas Dukuhturi" required>
+          </label>
+        </div>
+        <div class="kelola-price-grid">
+          <label class="field">
+            <span class="field-label">Harga Snack / porsi</span>
+            <input type="text" id="uptd-harga-snack" class="input uang-input" inputmode="numeric" placeholder="0">
+          </label>
+          <label class="field">
+            <span class="field-label">Harga Nasi Box / porsi</span>
+            <input type="text" id="uptd-harga-nasi" class="input uang-input" inputmode="numeric" placeholder="0">
+          </label>
+          <label class="field">
+            <span class="field-label">Keuntungan Snack / porsi</span>
+            <input type="text" id="uptd-profit-snack" class="input uang-input" inputmode="numeric" placeholder="0">
+          </label>
+          <label class="field">
+            <span class="field-label">Keuntungan Nasi Box / porsi</span>
+            <input type="text" id="uptd-profit-nasi" class="input uang-input" inputmode="numeric" placeholder="0">
+          </label>
+        </div>
+        <div class="hint-box">💡 Harga &amp; keuntungan per porsi dipakai untuk menghitung total pesanan secara otomatis.
+          Prasmanan belum memiliki harga/keuntungan (0).</div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-uptd-save">Simpan UPTD</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======= MODAL: TAMBAH/UBAH AKUN UPTD ======= -->
+  <div class="modal" id="modal-akun" role="dialog" aria-modal="true" aria-labelledby="akun-title">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="akun-title">Tambah Akun UPTD</h2>
+        <button class="modal-x no-print" data-close aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <form id="akun-form" novalidate>
+        <div class="txn-form-fields">
+          <label class="field">
+            <span class="field-label">UPTD <em>*</em></span>
+            <select id="akun-uptd" class="input" required></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Username <em>*</em></span>
+            <input type="text" id="akun-username" class="input" maxlength="40" placeholder="huruf kecil, tanpa spasi"
+              autocomplete="off" autocapitalize="none" spellcheck="false" required>
+          </label>
+          <label class="field">
+            <span class="field-label">Password <em>*</em></span>
+            <input type="password" id="akun-password" class="input" maxlength="60" placeholder="Isi password"
+              autocomplete="new-password">
+          </label>
+        </div>
+        <div class="hint-box">💡 Akun UPTD hanya bisa login melihat <b>Daftar Transaksi</b> milik UPTD yang dipilih —
+          tanpa tombol tambah, ubah, hapus, ekspor, atau cetak.</div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Batal</button>
+          <button type="submit" class="btn btn-primary" id="btn-akun-save">Simpan Akun</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======= MODAL: KONFIRMASI ======= -->
+  <div class="modal" id="modal-confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="modal-box modal-small">
+      <div class="modal-head">
+        <h2 id="confirm-title">Konfirmasi</h2>
+        <button class="modal-x no-print" data-close aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="confirm-msg" id="confirm-msg"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="confirm-cancel">Batal</button>
+        <button class="btn btn-primary" id="confirm-ok">Ya, lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= MODAL: PANDUAN ======= -->
+  <div class="modal" id="modal-help" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="modal-box modal-wide">
+      <div class="modal-head">
+        <h2 id="help-title">Panduan &amp; SOP Pencatatan Keuangan</h2>
+        <button class="modal-x no-print" data-close aria-label="Tutup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="help-body">
+        <h4>📖 Arti Kolom (standar buku kas)</h4>
+        <ul>
+          <li><b>Debit</b> = uang <b>masuk</b> (pemasukan). Kategori: <b>Modal</b> atau <b>Pembayaran</b>.</li>
+          <li><b>Kredit</b> = uang <b>keluar</b> (pengeluaran) pesanan UPTD Puskesmas. Kategori: <b>Snack</b>, <b>Nasi
+              Box</b>, <b>Prasmanan</b>.</li>
+          <li><b>Saldo</b> = saldo awal + total Debit − total Kredit. <b>Selalu dihitung otomatis</b>, tidak bisa diubah
+            manual → mencegah salah hitung.</li>
+          <li><b>Total pengeluaran</b> = Jumlah Qty × harga per porsi (menurut UPTD &amp; kategori). <b>Keuntungan</b> =
+            Qty × keuntungan per porsi.</li>
+          <li><b>Fee</b> (kategori pemasukan) = <b>mengurangi saldo</b> kas seperti biaya operasional, tetapi
+            <b>seluruh nominalnya dihitung sebagai keuntungan</b>. Kolom Debit kosong, nominal tampil di kolom
+            <b>Keuntungan</b>.</li>
+        </ul>
+        <h4>✅ SOP Pencatatan Harian</h4>
+        <ul>
+          <li>Catat setiap transaksi <b>di hari yang sama</b> saat uang masuk/keluar. Jangan menunda.</li>
+          <li>Isi <b>keterangan yang jelas</b> (nama pesanan, pelanggan, atau keperluan) agar mudah ditelusuri.</li>
+          <li>Pilih <b>UPTD &amp; kategori</b> yang tepat supaya total &amp; keuntungan otomatis benar.</li>
+          <li><b>Pisahkan uang usaha dan uang pribadi</b> — hanya catat transaksi usaha.</li>
+        </ul>
+        <h4>🔄 SOP Mingguan &amp; Bulanan</h4>
+        <ul>
+          <li><b>Mingguan:</b> cocokkan saldo aplikasi dengan uang tunai &amp; saldo rekening. Selisih kecil pun harus
+            dicari sebabnya.</li>
+          <li><b>Mingguan:</b> backup data (Pengaturan → Ekspor Backup) dan simpan file di tempat lain
+            (flashdisk/cloud).</li>
+          <li><b>Bulanan:</b> buka halaman Laporan, tinjau selisih kas per kategori, lalu evaluasi harga menu &amp;
+            biaya operasional.</li>
+        </ul>
+        <h4>⚠️ Catatan Penting</h4>
+        <ul>
+          <li>Data tersimpan di <b>browser perangkat ini</b>. Jangan hapus data browser (riwayat/situs) tanpa backup
+            terlebih dahulu.</li>
+          <li>Selisih kas bulanan bukan laba akuntansi penuh — belum termasuk nilai stok bahan dan penyusutan peralatan.
+          </li>
+          <li>Saldo awal harus benar; jika berubah, perbaiki di Pengaturan dan semua saldo menyesuaikan otomatis.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-root" aria-live="polite"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
