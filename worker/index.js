@@ -1,20 +1,49 @@
-﻿export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-    const cors = {'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, PUT, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Api-Token','Cache-Control':'no-store'};
-    if (request.method === 'OPTIONS') return new Response(null,{status:204,headers:cors});
-    if (url.pathname === '/api/health') return json({ok:true},cors);
-    if (url.pathname !== '/api/state') return json({error:'Not found'},cors,404);
-    if (request.method === 'GET') {
-      try { const row=await env.amaris_catering_db.prepare('SELECT data, updated_at FROM state WHERE id = 1').first(); return json(row ? {data:JSON.parse(row.data),updated_at:row.updated_at}:{data:null,updated_at:null},cors); }
-      catch(e) { return json({error:e.message},cors,500); }
-    }
-    if (request.method === 'PUT') {
-      if (env.API_TOKEN && request.headers.get('X-Api-Token') !== env.API_TOKEN) return json({error:'Unauthorized'},cors,401);
-      try { const body=await request.json(); const now=new Date().toISOString(); await env.amaris_catering_db.prepare('INSERT INTO state (id,data,updated_at) VALUES (1,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at').bind(JSON.stringify(body),now).run(); return json({ok:true,updated_at:now},cors); }
-      catch(e) { return json({error:e.message},cors,500); }
-    }
-    return json({error:'Method not allowed'},cors,405);
-  }
-};
-function json(body,headers,status=200){return new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json',...headers}});}
+const SESSION_DAYS = 7;
+const cors = {'Access-Control-Allow-Origin':'https://amaris-catering.pages.dev','Access-Control-Allow-Credentials':'true','Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, X-Api-Token'};
+export default { async fetch(request, env) { const u=new URL(request.url); if(request.method==='OPTIONS') return new Response(null,{status:204,headers:cors}); try {
+  if(u.pathname==='/api/auth/login' && request.method==='POST') return login(request,env);
+  if(u.pathname==='/api/auth/session' && request.method==='GET') return session(request,env);
+  if(u.pathname==='/api/auth/logout' && request.method==='POST') return logout(request,env);
+  if(u.pathname==='/api/auth/users' && request.method==='GET') return listUsers(request,env);
+  if(u.pathname==='/api/auth/users' && request.method==='POST') return addUser(request,env);
+  if(u.pathname==='/api/auth/bootstrap' && request.method==='POST') return bootstrap(request,env);
+  if(u.pathname==='/api/health') return out({ok:true},200);
+  if(u.pathname==='/api/state') return stateApi(request,env);
+  return out({error:'Not found'},404);
+ } catch(e) { return out({error:'Server error'},500); } } };
+async function login(req,env){
+  try {
+    const b=await req.json(); const username=String(b.username||'').trim().toLowerCase(); const password=String(b.password||'');
+    if(!username||!password)return out({error:'Username dan password wajib diisi.'},400);
+    const user=await env.amaris_catering_db.prepare('SELECT * FROM auth_users WHERE username=? COLLATE NOCASE').bind(username).first();
+    if(!user)return out({error:'Username atau password salah.'},401);
+    if(!(await verify(password,user.password_hash)))return out({error:'Username atau password salah.'},401);
+    const raw=token(); const now=new Date(); const exp=new Date(now.getTime()+SESSION_DAYS*86400000);
+    await env.amaris_catering_db.prepare('INSERT INTO auth_sessions(token_hash,user_id,expires_at,created_at) VALUES(?,?,?,?)').bind(await hash(raw),user.id,exp.toISOString(),now.toISOString()).run();
+    return out({ok:true,user:safe(user)},200,{'Set-Cookie':`amaris_session=${raw}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${SESSION_DAYS*86400}`});
+  } catch(e) { return out({error:'Login gagal. Silakan coba lagi.'},500); }
+}
+async function session(req,env){const s=await auth(req,env); return s?out({ok:true,user:s.user},200):out({ok:false},401);}
+async function logout(req,env){const raw=cookie(req,'amaris_session');if(raw)await env.amaris_catering_db.prepare('DELETE FROM auth_sessions WHERE token_hash=?').bind(await hash(raw)).run();return out({ok:true},200,{'Set-Cookie':'amaris_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'});}
+async function listUsers(req,env){const s=await auth(req,env);if(!s||s.user.role!=='admin')return out({error:'Forbidden'},403);const r=await env.amaris_catering_db.prepare('SELECT id,username,role,name,uptd_id,created_at FROM auth_users ORDER BY username').all();return out({users:r.results},200);}
+async function addUser(req,env){const s=await auth(req,env);if(!s||s.user.role!=='admin')return out({error:'Forbidden'},403);const b=await req.json();const username=String(b.username||'').trim().toLowerCase(),password=String(b.password||'');if(!/^[a-z0-9._-]+$/.test(username)||password.length<8)return out({error:'Username tidak valid atau password minimal 8 karakter.'},400);const id=crypto.randomUUID();try{await env.amaris_catering_db.prepare('INSERT INTO auth_users(id,username,password_hash,role,name,uptd_id,created_at) VALUES(?,?,?,?,?,?,?)').bind(id,username,await derive(password),b.role==='admin'?'admin':'uptd',String(b.name||username),String(b.uptdId||''),new Date().toISOString()).run();return out({ok:true,user:{id,username}},201);}catch(e){return out({error:'Username sudah dipakai.'},409);}}
+async function bootstrap(req,env){
+  try {
+    if(env.API_TOKEN && req.headers.get('X-Api-Token')!==env.API_TOKEN)return out({error:'Unauthorized'},401);
+    const count=await env.amaris_catering_db.prepare('SELECT COUNT(*) AS n FROM auth_users').first();
+    if(Number(count&&count.n)>0)return out({error:'Accounts already initialized'},409);
+    const seed=[
+      ['admin','nurulamar','nurulamar1','admin','Admin',''],
+      ['debong','debonglor','debonglor1','uptd','UPTD Puskesmas Debong Lor','debong'],
+      ['barat','tegalbarat','tegalbarat2','uptd','UPTD Puskesmas Tegal Barat','barat']
+    ];
+    const now=new Date().toISOString();
+    for(const [id,username,password,role,name,uptdId] of seed){await env.amaris_catering_db.prepare('INSERT INTO auth_users(id,username,password_hash,role,name,uptd_id,created_at) VALUES(?,?,?,?,?,?,?)').bind(id,username,await derive(password),role,name,uptdId,now).run();}
+    return out({ok:true,created:seed.length},201);
+  } catch(e) { return out({error:'Bootstrap failed: '+String(e&&e.message||e)},500); }
+}
+async function auth(req,env){const raw=cookie(req,'amaris_session');if(!raw)return null;const r=await env.amaris_catering_db.prepare('SELECT u.id,u.username,u.role,u.name,u.uptd_id FROM auth_sessions s JOIN auth_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').bind(await hash(raw),new Date().toISOString()).first();return r?{user:safe(r)}:null;}
+function safe(u){return {id:u.id,username:u.username,role:u.role,name:u.name,uptdId:u.uptd_id||''};} function cookie(req,n){const x=req.headers.get('Cookie')||'';const m=x.match(new RegExp('(?:^|; )'+n+'=([^;]+)'));return m?m[1]:'';} function token(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/[+/=]/g,'');}
+async function derive(p){const s=crypto.getRandomValues(new Uint8Array(16));const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:s,iterations:100000,hash:'SHA-256'},k,256);return 'pbkdf2$100000$'+hex(s)+'$'+hex(new Uint8Array(bits));} async function verify(p,v){const x=v.split('$');if(x.length!==4)return false;const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:bytes(x[2]),iterations:Number(x[1]),hash:'SHA-256'},k,256);return hex(new Uint8Array(bits))===x[3];} async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return hex(new Uint8Array(b));}function hex(a){return [...a].map(x=>x.toString(16).padStart(2,'0')).join('')}function bytes(s){return new Uint8Array(s.match(/.{2}/g).map(x=>parseInt(x,16)))}
+function out(b,status=200,extra={}){return new Response(JSON.stringify(b),{status,headers:{'Content-Type':'application/json',...cors,...extra}})}
+async function stateApi(req,env){if(req.method==='GET'){const r=await env.amaris_catering_db.prepare('SELECT data,updated_at FROM state WHERE id=1').first();return out(r?{data:JSON.parse(r.data),updated_at:r.updated_at}:{data:null,updated_at:null})}if(req.method==='PUT'){if(env.API_TOKEN&&req.headers.get('X-Api-Token')!==env.API_TOKEN)return out({error:'Unauthorized'},401);const b=JSON.stringify(await req.json()),now=new Date().toISOString();await env.amaris_catering_db.prepare('INSERT INTO state(id,data,updated_at) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at').bind(b,now).run();return out({ok:true,updated_at:now})}return out({error:'Method not allowed'},405)}

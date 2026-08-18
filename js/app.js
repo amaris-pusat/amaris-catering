@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Gagal memuat data awal:', e);
   }
   const applyAuthUI = initAuth();
+  await initAuthSession();
   initNav();
   initButtons();
   initTxnModal();
@@ -39,8 +40,8 @@ function initAuth() {
   const userEl = document.getElementById('login-username');
   const passEl = document.getElementById('login-password');
 
-  const applyAuthUI = () => {
-    const session = currentSession();
+  const applyAuthUI = async () => {
+    const session = cachedSession();
     const userBox = document.getElementById('sidebar-user');
     if (session) {
       document.body.classList.add('logged-in');
@@ -66,26 +67,35 @@ function initAuth() {
     }
   };
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errBox.hidden = true;
-    const session = login(userEl.value, passEl.value);
-    if (!session) {
-      errBox.textContent = 'Username atau password salah. Silakan coba lagi.';
-      errBox.hidden = false;
+    const submit = document.getElementById('login-submit');
+    submit.disabled = true;
+    try {
+      const session = await login(userEl.value, passEl.value);
+      if (!session) {
+        errBox.textContent = 'Username atau password salah. Silakan coba lagi.';
+        errBox.hidden = false;
+        passEl.value = '';
+        passEl.focus();
+        return;
+      }
       passEl.value = '';
-      passEl.focus();
-      return;
+      await applyAuthUI();
+    } catch (err) {
+      errBox.textContent = 'Tidak dapat terhubung ke server login.';
+      errBox.hidden = false;
+    } finally {
+      submit.disabled = false;
     }
-    passEl.value = '';
-    applyAuthUI();
   });
 
-  document.getElementById('btn-logout').addEventListener('click', () => {
-    logout();
+  document.getElementById('btn-logout').addEventListener('click', async () => {
+    await logout();
     userEl.value = '';
     passEl.value = '';
-    applyAuthUI();
+    await applyAuthUI();
   });
 
   return applyAuthUI;

@@ -9,6 +9,15 @@
 
 const AUTH_KEY = 'amaris-auth-session';
 const USERS_KEY = 'amaris-auth-users';
+const AUTH_API = ((typeof window !== 'undefined' && window.AMARIS_API_BASE) || '') + '/api/auth';
+let serverSession = null;
+
+async function authFetch(path, options = {}) {
+  const res = await fetch(AUTH_API + path, { ...options, credentials: 'include', headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+  let body = null;
+  try { body = await res.json(); } catch (e) { /* response tanpa JSON */ }
+  return { ok: res.ok, status: res.status, body };
+}
 
 const ADMIN_USER = {
   username: 'nurulamar',
@@ -128,67 +137,50 @@ function getUptdUserById(id) {
   return getUptdUsers().find(x => x.id === id) || null;
 }
 
-/* ---------- Login / Logout ---------- */
-function login(username, password) {
-  const user = findUser(username);
-  if (!user) return null;
-  if (String(password) !== user.password) return null;
-
-  const session = {
-    username: user.username,
-    role: user.role,
-    name: user.name,
-    uptdId: user.uptdId,
-    loginAt: new Date().toISOString()
-  };
-  try {
-    sessionStorage.setItem(AUTH_KEY, JSON.stringify(session));
-  } catch (e) {
-    console.error('Gagal menyimpan sesi:', e);
-  }
-  return session;
+/* ---------- Login / Logout server-side ---------- */
+async function login(username, password) {
+  const r = await authFetch('/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+  if (!r.ok || !r.body || !r.body.user) return null;
+  serverSession = r.body.user;
+  return serverSession;
 }
 
-function logout() {
-  try {
-    sessionStorage.removeItem(AUTH_KEY);
-  } catch (e) {
-    console.error('Gagal menghapus sesi:', e);
-  }
+async function logout() {
+  try { await authFetch('/logout', { method: 'POST', body: '{}' }); } catch (e) { /* session server tetap dibersihkan lokal */ }
+  serverSession = null;
+  try { sessionStorage.removeItem(AUTH_KEY); } catch (e) { /* abaikan */ }
 }
 
-function currentSession() {
+async function currentSession() {
+  if (serverSession) return serverSession;
   try {
-    const raw = sessionStorage.getItem(AUTH_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    // Validasi: sesi harus mengacu ke akun yang masih terdaftar.
-    const user = findUser(parsed.username);
-    if (!user) return null;
-    return {
-      username: user.username,
-      role: user.role,
-      name: user.name,
-      uptdId: user.uptdId,
-      loginAt: parsed.loginAt || ''
-    };
-  } catch (e) {
-    return null;
-  }
+    const r = await authFetch('/session');
+    if (!r.ok || !r.body || !r.body.user) return null;
+    serverSession = r.body.user;
+    return serverSession;
+  } catch (e) { return null; }
+}
+
+/* Helper sinkron untuk renderer lama; diisi setelah initAuthSession(). */
+function cachedSession() { return serverSession; }
+
+async function initAuthSession() {
+  serverSession = null;
+  return currentSession();
 }
 
 /* ---------- Helper peran ---------- */
 function isAdmin() {
-  const s = currentSession();
+  const s = cachedSession();
   return !!(s && s.role === 'admin');
 }
 
 function isUptdUser() {
-  const s = currentSession();
+  const s = cachedSession();
   return !!(s && s.role === 'uptd');
 }
 
 function currentUptdId() {
-  const s = currentSession();
+  const s = cachedSession();
   return (s && s.uptdId) || '';
 }
