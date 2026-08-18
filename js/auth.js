@@ -19,123 +19,32 @@ async function authFetch(path, options = {}) {
   return { ok: res.ok, status: res.status, body };
 }
 
-const ADMIN_USER = {
-  username: 'nurulamar',
-  password: 'nurulamar1',
-  role: 'admin',
-  name: 'Admin',
-  uptdId: ''
-};
-
-/* ---------- Akun UPTD bawaan (seed pertama kali) ---------- */
-const DEFAULT_UPTD_USERS = [
-  { username: 'debonglor', password: 'debonglor1', role: 'uptd', name: 'UPTD Puskesmas Debong Lor', uptdId: 'debong' },
-  { username: 'tegalbarat', password: 'tegalbarat2', role: 'uptd', name: 'UPTD Puskesmas Tegal Barat', uptdId: 'barat' }
-];
-
-/* ---------- Akun UPTD dinamis (localStorage) ---------- */
-// Struktur: { id, username, password, role:'uptd', name, uptdId }
-function getUptdUsers() {
-  let raw = null;
-  try {
-    raw = localStorage.getItem(USERS_KEY);
-  } catch (e) {
-    console.error('Gagal memuat akun UPTD:', e);
-    return [];
-  }
-  if (raw === null) {
-    // Pertama kali: seed akun UPTD bawaan agar tetap bisa login.
-    const seed = DEFAULT_UPTD_USERS.map(u => ({ id: uidAuth(), ...u }));
-    saveUptdUsers(seed);
-    return seed;
-  }
-  try {
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
-  } catch (e) {
-    console.error('Gagal parse akun UPTD:', e);
-    return [];
-  }
+let userCache = [];
+async function refreshUptdUsers() {
+  const r = await authFetch('/users');
+  if (!r.ok || !r.body || !Array.isArray(r.body.users)) throw new Error('Gagal memuat akun');
+  userCache = r.body.users.map(u => ({ id:u.id, username:u.username, role:u.role, name:u.name, uptdId:u.uptd_id || u.uptdId || '' }));
+  return userCache;
 }
-
-function uidAuth() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function getUptdUsers() { return userCache.filter(u => u.role === 'uptd'); }
+function findAllUsers() { return userCache.slice(); }
+function findUser(username) { const u=(username||'').trim().toLowerCase(); return userCache.find(x=>x.username===u)||null; }
+async function addUptdUser({ uptdId, username, password, name }) {
+  const r = await authFetch('/users', { method:'POST', body:JSON.stringify({ uptdId, username, password, name, role:'uptd' }) });
+  if (!r.ok) return { ok:false, error:(r.body&&r.body.error)||'Gagal menambah akun.' };
+  await refreshUptdUsers(); return { ok:true, user:r.body.user };
 }
-
-function saveUptdUsers(users) {
-  try {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  } catch (e) {
-    console.error('Gagal menyimpan akun UPTD:', e);
-  }
+async function updateUptdUser(id, { uptdId, username, password, name }) {
+  const r = await authFetch('/users/'+encodeURIComponent(id), { method:'PUT', body:JSON.stringify({ uptdId, username, password, name, role:'uptd' }) });
+  if (!r.ok) return { ok:false, error:(r.body&&r.body.error)||'Gagal memperbarui akun.' };
+  await refreshUptdUsers(); return { ok:true, user:getUptdUserById(id) };
 }
-
-/* ---------- Daftar akun (admin + UPTD) ---------- */
-function findAllUsers() {
-  return [ADMIN_USER].concat(getUptdUsers());
+async function deleteUptdUser(id) {
+  const r = await authFetch('/users/'+encodeURIComponent(id), { method:'DELETE' });
+  if (!r.ok) return false;
+  await refreshUptdUsers(); return true;
 }
-
-function findUser(username) {
-  const u = (username || '').trim().toLowerCase();
-  return findAllUsers().find(x => x.username === u) || null;
-}
-
-/* ---------- Kelola akun UPTD (Superadmin) ---------- */
-function addUptdUser({ uptdId, username, password, name }) {
-  const uname = (username || '').trim().toLowerCase();
-  if (!uname) return { ok: false, error: 'Username tidak boleh kosong.' };
-  if (!/^[a-z0-9._-]+$/.test(uname)) {
-    return { ok: false, error: 'Username hanya boleh huruf kecil, angka, titik, strip, underscore.' };
-  }
-  if (findAllUsers().some(x => x.username === uname)) {
-    return { ok: false, error: 'Username sudah dipakai.' };
-  }
-  if (!(password || '')) return { ok: false, error: 'Password tidak boleh kosong.' };
-  const u = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-    username: uname,
-    password: String(password),
-    role: 'uptd',
-    name: (name || '').trim() || uname,
-    uptdId: uptdId || ''
-  };
-  const users = getUptdUsers();
-  users.push(u);
-  saveUptdUsers(users);
-  return { ok: true, user: u };
-}
-
-function updateUptdUser(id, { uptdId, username, password, name }) {
-  const users = getUptdUsers();
-  const u = users.find(x => x.id === id);
-  if (!u) return { ok: false, error: 'Akun tidak ditemukan.' };
-  const uname = (username || '').trim().toLowerCase();
-  if (!uname) return { ok: false, error: 'Username tidak boleh kosong.' };
-  if (!/^[a-z0-9._-]+$/.test(uname)) {
-    return { ok: false, error: 'Username hanya boleh huruf kecil, angka, titik, strip, underscore.' };
-  }
-  const dup = findAllUsers().some(x => x.id !== id && x.username === uname);
-  if (dup) return { ok: false, error: 'Username sudah dipakai.' };
-  u.username = uname;
-  if (password) u.password = String(password);
-  u.uptdId = uptdId || '';
-  u.name = (name || '').trim() || uname;
-  saveUptdUsers(users);
-  return { ok: true, user: u };
-}
-
-function deleteUptdUser(id) {
-  const users = getUptdUsers();
-  const idx = users.findIndex(x => x.id === id);
-  if (idx === -1) return false;
-  users.splice(idx, 1);
-  saveUptdUsers(users);
-  return true;
-}
-
-function getUptdUserById(id) {
-  return getUptdUsers().find(x => x.id === id) || null;
-}
+function getUptdUserById(id) { return userCache.find(u=>u.id===id)||null; }
 
 /* ---------- Login / Logout server-side ---------- */
 async function login(username, password) {
@@ -166,7 +75,11 @@ function cachedSession() { return serverSession; }
 
 async function initAuthSession() {
   serverSession = null;
-  return currentSession();
+  const session = await currentSession();
+  if (session && session.role === 'admin') {
+    try { await refreshUptdUsers(); } catch (e) { console.warn('Akun belum termuat:', e.message); }
+  }
+  return session;
 }
 
 /* ---------- Helper peran ---------- */

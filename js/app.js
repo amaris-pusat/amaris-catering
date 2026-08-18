@@ -10,14 +10,13 @@ let editingId = null;
 
 /* ================= INISIALISASI ================= */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Muat data dari cloud (D1) / localStorage dulu — semua render butuh state.
+  const applyAuthUI = initAuth();
   try {
+    await initAuthSession();
     await initData();
   } catch (e) {
-    console.error('Gagal memuat data awal:', e);
+    console.error('Gagal memuat sesi/data awal:', e);
   }
-  const applyAuthUI = initAuth();
-  await initAuthSession();
   initNav();
   initButtons();
   initTxnModal();
@@ -28,9 +27,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   initProfitControls();
   initProfitCairkan();
   initUptdAkunControls();
-  // Jam realtime di topbar (update tiap detik)
   setInterval(updateTopDate, 1000);
-  applyAuthUI();
+  await applyAuthUI();
 });
 
 /* ================= AUTENTIKASI & PERAN ================= */
@@ -82,6 +80,7 @@ function initAuth() {
         return;
       }
       passEl.value = '';
+      await initData();
       await applyAuthUI();
     } catch (err) {
       errBox.textContent = 'Tidak dapat terhubung ke server login.';
@@ -1417,19 +1416,16 @@ function initUptdAkunControls() {
     renderAll();
   });
 
-  document.getElementById('akun-form').addEventListener('submit', (e) => {
-    e.preventDefault();
+  document.getElementById('akun-form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
     const uptdId = document.getElementById('akun-uptd').value;
     const username = document.getElementById('akun-username').value;
     const password = document.getElementById('akun-password').value;
     if (!uptdId) { toast('❌ Pilih UPTD untuk akun ini.', 'err'); return; }
     const res = editingAkunId
-      ? updateUptdUser(editingAkunId, { uptdId, username, password })
-      : addUptdUser({ uptdId, username, password });
-    if (!res.ok) {
-      toast('❌ ' + res.error, 'err');
-      return;
-    }
+      ? await updateUptdUser(editingAkunId, { uptdId, username, password })
+      : await addUptdUser({ uptdId, username, password });
+    if (!res.ok) { toast('❌ ' + res.error, 'err'); return; }
     closeModal('modal-akun');
     toast(editingAkunId ? 'Akun diperbarui.' : `Akun "${username}" ditambahkan.`);
     editingAkunId = null;
@@ -1458,11 +1454,11 @@ function openAkunModal(id) {
 
 function delUptd(id) {
   const u = getUptdList().find(x => x.id === id);
-  showConfirm(`Hapus UPTD "${u ? u.label : ''}"? Semua akun login untuk UPTD ini juga akan dihapus. Hanya bisa jika tidak ada transaksi yang memakainya.`, () => {
+  showConfirm(`Hapus UPTD "${u ? u.label : ''}"? Semua akun login untuk UPTD ini juga akan dihapus. Hanya bisa jika tidak ada transaksi yang memakainya.`, async () => {
     const res = removeUptd(id);
     if (!res.ok) { toast('❌ ' + res.error, 'err'); return; }
-    // Hapus akun UPTD yang terhubung agar tidak ada akun yatim.
-    getUptdUsers().filter(x => x.uptdId === id).forEach(x => deleteUptdUser(x.id));
+    const linked = getUptdUsers().filter(x => x.uptdId === id);
+    await Promise.all(linked.map(x => deleteUptdUser(x.id)));
     toast('UPTD dihapus.');
     renderAll();
   });
@@ -1470,8 +1466,8 @@ function delUptd(id) {
 
 function delAkun(id) {
   const u = getUptdUserById(id);
-  showConfirm(`Hapus akun "${u ? u.username : ''}"? Pengguna ini tidak bisa login lagi.`, () => {
-    if (!deleteUptdUser(id)) { toast('❌ Akun tidak ditemukan.', 'err'); return; }
+  showConfirm(`Hapus akun "${u ? u.username : ''}"? Pengguna ini tidak bisa login lagi.`, async () => {
+    if (!await deleteUptdUser(id)) { toast('❌ Akun tidak ditemukan atau gagal dihapus.', 'err'); return; }
     toast('Akun dihapus.');
     renderAll();
   });

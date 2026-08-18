@@ -24,9 +24,9 @@ function getApiToken() {
 async function fetchJSON(url, opts = {}) {
   const res = await fetch(url, {
     ...opts,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'X-Api-Token': getApiToken(),
       ...(opts.headers || {})
     }
   });
@@ -186,23 +186,9 @@ function todayISOLocal() {
 }
 
 async function loadState() {
-  // 1) Coba ambil dari cloud (D1). Jika ada, pakai & simpan salinan lokal.
-  try {
-    const remote = await loadRemoteState();
-    if (remote) {
-      const s = normalizeState(remote);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* abaikan */ }
-      return s;
-    }
-  } catch (e) { /* lanjut ke localStorage */ }
-  // 2) Fallback: localStorage (mode offline / tanpa worker).
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return normalizeState(parsed);
-    }
-  } catch (e) { /* lanjut ke default */ }
+  // Data produksi wajib berasal dari Worker/D1 agar semua device konsisten.
+  const remote = await loadRemoteState();
+  if (remote) return normalizeState(remote);
   return DEFAULT_STATE();
 }
 
@@ -265,11 +251,6 @@ function mergeCategories(def, parsed) {
 }
 
 async function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    console.error('Gagal menyimpan data lokal:', e);
-  }
   scheduleCloudSave();
 }
 
