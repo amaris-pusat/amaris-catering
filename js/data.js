@@ -27,6 +27,7 @@ async function fetchJSON(url, opts = {}) {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(API_TOKEN ? { 'X-Api-Token': API_TOKEN } : {}),
       ...(opts.headers || {})
     }
   });

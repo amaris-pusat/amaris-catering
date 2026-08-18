@@ -34,4 +34,19 @@ async function auth(req,env){const raw=cookie(req,'amaris_session');if(!raw)retu
 function safe(u){return {id:u.id,username:u.username,role:u.role,name:u.name,uptdId:u.uptd_id||''};} function cookie(req,n){const x=req.headers.get('Cookie')||'';const m=x.match(new RegExp('(?:^|; )'+n+'=([^;]+)'));return m?m[1]:'';} function token(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/[+/=]/g,'');}
 async function derive(p){const s=crypto.getRandomValues(new Uint8Array(16));const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:s,iterations:100000,hash:'SHA-256'},k,256);return 'pbkdf2$100000$'+hex(s)+'$'+hex(new Uint8Array(bits));} async function verify(p,v){const x=v.split('$');if(x.length!==4)return false;const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:bytes(x[2]),iterations:Number(x[1]),hash:'SHA-256'},k,256);return hex(new Uint8Array(bits))===x[3];} async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return hex(new Uint8Array(b));}function hex(a){return [...a].map(x=>x.toString(16).padStart(2,'0')).join('')}function bytes(s){return new Uint8Array(s.match(/.{2}/g).map(x=>parseInt(x,16)))}
 function out(b,status=200,extra={}){return new Response(JSON.stringify(b),{status,headers:{'Content-Type':'application/json',...cors,...extra}})}
-async function stateApi(req,env){const s=await auth(req,env);if(!s)return out({error:'Unauthorized'},401);if(req.method==='GET'){const r=await env.amaris_catering_db.prepare('SELECT data,updated_at FROM state WHERE id=1').first();return out(r?{data:JSON.parse(r.data),updated_at:r.updated_at}:{data:null,updated_at:null})}if(req.method==='PUT'){if(s.user.role!=='admin')return out({error:'Forbidden'},403);const b=JSON.stringify(await req.json()),now=new Date().toISOString();await env.amaris_catering_db.prepare('INSERT INTO state(id,data,updated_at) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at').bind(b,now).run();return out({ok:true,updated_at:now})}return out({error:'Method not allowed'},405)}
+async function stateApi(req,env){
+  const s=await auth(req,env);
+  const tokenOk=!!env.API_TOKEN && req.headers.get('X-Api-Token')===env.API_TOKEN;
+  if(!s&&!tokenOk)return out({error:'Unauthorized'},401);
+  if(req.method==='GET'){
+    const r=await env.amaris_catering_db.prepare('SELECT data,updated_at FROM state WHERE id=1').first();
+    return out(r?{data:JSON.parse(r.data),updated_at:r.updated_at}:{data:null,updated_at:null});
+  }
+  if(req.method==='PUT'){
+    if(!tokenOk&&(!s||s.user.role!=='admin'))return out({error:'Forbidden'},403);
+    const b=JSON.stringify(await req.json()),now=new Date().toISOString();
+    await env.amaris_catering_db.prepare('INSERT INTO state(id,data,updated_at) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at').bind(b,now).run();
+    return out({ok:true,updated_at:now});
+  }
+  return out({error:'Method not allowed'},405);
+}
