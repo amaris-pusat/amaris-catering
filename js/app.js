@@ -1528,10 +1528,14 @@ function initBackup() {
         const parsed = JSON.parse(reader.result);
         const data = parsed.data ? parsed.data : parsed;
         if (!data || !Array.isArray(data.transactions)) throw new Error('format');
-        showConfirm(`Pulihkan dari backup "${file.name}"? Data saat ini akan diganti seluruhnya.`, () => {
-          importState(data);
-          renderAll();
-          toast('✅ Backup berhasil dipulihkan.');
+        showConfirm(`Pulihkan dari backup "${file.name}"? Data saat ini akan diganti seluruhnya.`, async () => {
+          try {
+            await importState(data);
+            renderAll();
+            toast('✅ Backup berhasil dipulihkan dan tersimpan di cloud.');
+          } catch (saveErr) {
+            toast('❌ Backup gagal disimpan ke cloud. Data device lain belum berubah.', 'err');
+          }
         });
       } catch (err) {
         toast('❌ File backup tidak valid.', 'err');

@@ -251,7 +251,7 @@ function mergeCategories(def, parsed) {
 }
 
 async function saveState() {
-  scheduleCloudSave();
+  return saveRemoteState(JSON.parse(JSON.stringify(state)));
 }
 
 /* ---------- Inisialisasi data (dipanggil saat boot aplikasi) ---------- */
@@ -714,7 +714,7 @@ function buildCSV(transactions, includeBalance = true) {
   return lines.join('\r\n');
 }
 
-function importState(data) {
+async function importState(data) {
   const def = DEFAULT_STATE();
   state = {
     settings: { ...def.settings, ...(data.settings || {}) },
@@ -725,7 +725,9 @@ function importState(data) {
       ? data.profitWithdrawals.map(migrateWd)
       : []
   };
-  saveState();
+  const saved = await saveState();
+  if (!saved) throw new Error('cloud-save-failed');
+  return state;
 }
 
 /* ---------- Kelola UPTD (Superadmin) ---------- */
