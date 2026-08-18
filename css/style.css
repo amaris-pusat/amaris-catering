@@ -1102,3 +1102,206 @@ input[type="month"].input::-webkit-calendar-picker-indicator { filter: invert(.7
   .kas-toolbar input[type="date"].input { width: 124px; }
   .kas-toolbar .btn { width: auto; }
 }
+
+/* ============================================================
+   RESPONSIVE LANJUTAN — Tablet kecil & HP (semua perangkat)
+   ============================================================ */
+
+/* ---------- ≤960px: rekening koran menjadi kartu berlabel ---------- */
+@media (max-width: 960px) {
+  /* Header grid disembunyikan; setiap angka diberi label via ::before */
+  .koran-head { display: none; }
+
+  .koran-debit, .koran-kredit, .koran-profit, .koran-saldo {
+    min-width: 0;
+    font-size: .8rem;
+  }
+  .koran-debit::before, .koran-kredit::before, .koran-profit::before, .koran-saldo::before {
+    display: block;
+    content: 'Debit';
+    font-size: .58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .koran-kredit::before { content: 'Kredit'; }
+  .koran-profit::before { content: 'Profit'; }
+  .koran-saldo::before { content: 'Saldo'; }
+
+  /* Admin: 4 kolom — No/Tgl/Desc di baris 1, Debit+Kredit di baris 2,
+     Profit+Saldo di baris 3, Aksi di baris 4 */
+  .koran-item {
+    grid-template-columns: 26px 64px minmax(110px, 1fr) minmax(90px, 1fr);
+    gap: 6px 12px;
+    padding: 10px 12px;
+  }
+  .koran-item .koran-desc { grid-column: 3 / 5; }
+  .koran-item .koran-debit { grid-column: 3; }
+  .koran-item .koran-kredit { grid-column: 4; }
+  .koran-item .koran-profit { grid-column: 3; }
+  .koran-item .koran-saldo { grid-column: 4; }
+  .koran-item .koran-aksi { grid-column: 1 / -1; justify-content: flex-end; }
+
+  /* Role UPTD: kolom Profit & Aksi sudah tersembunyi — saldo full-width */
+  body.role-uptd .koran-item {
+    grid-template-columns: 26px 64px minmax(110px, 1fr) minmax(90px, 1fr);
+  }
+  body.role-uptd .koran-item .koran-desc { grid-column: 3 / 5; }
+  body.role-uptd .koran-item .koran-debit { grid-column: 3; }
+  body.role-uptd .koran-item .koran-kredit { grid-column: 4; }
+  body.role-uptd .koran-item .koran-saldo { grid-column: 3 / 5; text-align: right; }
+
+  /* Tabel kas tetap bisa di-scroll horizontal */
+  .kas-table { min-width: 620px; }
+  .kas-table th { padding: 8px 10px; }
+  .kas-table td { padding: 10px; }
+}
+
+/* ---------- ≤700px: tablet portrait / HP besar ---------- */
+@media (max-width: 700px) {
+  .topbar { align-items: flex-start; }
+  .topbar h1 { font-size: 1.3rem; }
+  .welcome { padding: 20px; }
+  .welcome-cta { width: 100%; }
+  .welcome-cta .btn { flex: 1; }
+
+  .chart-box { min-height: 200px; }
+  .donut-wrap { justify-content: center; }
+  .donut-box { width: 160px; height: 160px; flex-basis: 160px; }
+  .donut-legend { min-width: 100%; }
+
+  .txn-fields { grid-template-columns: 1fr; }
+  .txn-fields .field.span-2, .txn-fields .span-2 { grid-column: span 1; }
+
+  .kas-actions { flex-wrap: wrap; }
+  .kas-actions .btn { flex: 1; }
+  .laporan-toolbar .spacer { display: none; }
+  .laporan-toolbar .btn { flex: 1 1 auto; }
+  .form-actions { flex-wrap: wrap; }
+  .form-actions .btn { flex: 1; }
+  .kat-add { flex-direction: column; }
+  .kat-item { flex-wrap: wrap; }
+  .pagination { flex-wrap: wrap; justify-content: center; }
+
+  .modal-box { padding: 20px; }
+  .modal-actions { flex-wrap: wrap; }
+  .modal-actions .btn { flex: 1; }
+}
+
+/* ---------- ≤600px: HP ---------- */
+@media (max-width: 600px) {
+  .welcome { padding: 18px; }
+  .welcome-text h2 { font-size: 1.15rem; }
+  .card { padding: 16px; }
+  .selisih-value { font-size: 1.6rem; }
+
+  .modal { padding: 12px; }
+  .modal-box { padding: 18px; border-radius: 16px; }
+
+  .profit-toolbar { padding: 10px 12px; }
+  .profit-toolbar input[type="month"].input { width: 100%; }
+
+  .kas-head { flex-direction: column; align-items: stretch; }
+  .kas-head .kas-actions { justify-content: flex-start; }
+}
+
+/* ---------- ≤480px: HP kecil (layout kartu penuh) ---------- */
+@media (max-width: 480px) {
+  .login-screen { padding: 14px; }
+  .login-card { padding: 26px 18px 20px; }
+  .login-title { font-size: 1.3rem; }
+
+  .sidebar { padding: 10px 12px; gap: 10px; }
+  .brand-logo { width: 40px; height: 40px; }
+  .brand-logo svg { width: 26px; height: 26px; }
+  .brand-name { font-size: .95rem; }
+  .nav-item { padding: 9px; }
+  .nav-item svg { width: 20px; height: 20px; }
+  .saldo-mini-value { font-size: 1rem; }
+
+  .main { padding: 16px 12px 40px; }
+  .topbar { gap: 10px; margin-bottom: 18px; }
+  .topbar h1 { font-size: 1.2rem; }
+  .topbar-actions { flex-wrap: wrap; }
+
+  .stats-grid { gap: 12px; }
+  .stat { gap: 10px; }
+  .stat-value { font-size: 1.15rem; }
+  .stat-icon { width: 40px; height: 40px; border-radius: 11px; }
+  .stat-icon svg { width: 19px; height: 19px; }
+
+  /* Rekening koran → kartu 2 kolom dengan label */
+  .koran-item {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 14px;
+    padding: 12px;
+  }
+  .koran-no { grid-column: 1; grid-row: 1; }
+  .koran-tgl { grid-column: 2; grid-row: 1; text-align: right; }
+  .koran-desc { grid-column: 1 / -1; grid-row: 2; font-weight: 700; font-size: .92rem; }
+  .koran-debit { grid-column: 1; grid-row: 3; }
+  .koran-kredit { grid-column: 2; grid-row: 3; }
+  .koran-profit { grid-column: 1; grid-row: 4; }
+  .koran-saldo { grid-column: 2; grid-row: 4; }
+  .koran-aksi { grid-column: 1 / -1; grid-row: 5; justify-content: flex-end; }
+
+  body.role-uptd .koran-item .koran-debit { grid-column: 1; grid-row: 3; }
+  body.role-uptd .koran-item .koran-kredit { grid-column: 2; grid-row: 3; }
+  body.role-uptd .koran-item .koran-saldo { grid-column: 1 / -1; grid-row: 4; text-align: right; }
+
+  .koran-month-toggle { flex-wrap: wrap; gap: 6px; }
+  .koran-month-mutasi { flex: 1 1 100%; text-align: left; }
+  .koran-uptd { padding: 10px 12px; }
+
+  /* Grafik */
+  .chart-bars { gap: 6px; height: 200px; }
+  .bar { width: 10px; }
+  .bar-pair { height: 160px; gap: 3px; }
+  .donut-box { width: 140px; height: 140px; flex-basis: 140px; }
+  .selisih-value { font-size: 1.45rem; }
+
+  /* Tabel kas */
+  .kas-table { min-width: 560px; }
+  .kas-table th { padding: 8px; font-size: .68rem; }
+  .kas-table td { padding: 9px 8px; font-size: .84rem; }
+
+  /* Footer kas & pagination */
+  .kas-footer { flex-direction: column; align-items: stretch; text-align: center; }
+  .pagination { justify-content: center; }
+
+  /* Toast full-width */
+  #toast-root { left: 12px; right: 12px; bottom: 12px; }
+  .toast { max-width: none; width: 100%; }
+
+  /* Kelola & kategori */
+  .kelola-cols { gap: 12px; }
+  .kat-cols { gap: 14px; }
+  .kat-item { padding: 7px 10px; font-size: .84rem; }
+  .profit-total-big { font-size: 1.3rem; }
+  .profit-row { font-size: .8rem; }
+
+  /* Modal pencairan */
+  .profit-riwayat-item { grid-template-columns: 24px 1fr auto; }
+  .profit-riwayat-item .wd-status { grid-column: 1 / -1; justify-self: start; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; }
+}
+
+/* ---------- ≤380px: HP sangat kecil ---------- */
+@media (max-width: 380px) {
+  .sidebar { padding: 8px 10px; }
+  .brand { gap: 8px; }
+  .brand-name { font-size: .88rem; }
+  .brand-sub { display: none; }
+  .nav-item { padding: 8px; }
+  .nav-item svg { width: 18px; height: 18px; }
+  .topbar h1 { font-size: 1.1rem; }
+  .stat-value { font-size: 1.05rem; }
+  .stat-sub { font-size: .7rem; }
+  .bar { width: 9px; }
+  .login-title { font-size: 1.2rem; }
+  .login-card { padding: 22px 14px 16px; }
+  .tx-badge { font-size: .68rem; padding: 3px 8px; }
+}
